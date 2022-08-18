@@ -7,7 +7,8 @@ import upickle.default._
 import upickle.default.{ReadWriter => RW, macroRW}
 import upickle._
 
-case class Transaction(sender: String, receiver: String, amount: Long)
+trait Order
+case class Transaction(sender: String, receiver: String, amount: Long) extends Order
 given RW[Transaction] = macroRW
 
 case class Block(

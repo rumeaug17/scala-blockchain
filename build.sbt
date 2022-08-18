@@ -4,9 +4,12 @@ ThisBuild / maintainer := "rumeaug17@gmail.com"
 
 ThisBuild / scalaVersion := "3.1.3"
 
+val AkkaVersion = "2.6.19"
+
 ThisBuild / libraryDependencies ++= Seq(
   "com.lihaoyi" %% "upickle" % "2.0.0",
   "com.lihaoyi" %% "requests" % "0.7.0",
+  "com.typesafe.akka" %% "akka-actor-typed" % AkkaVersion,
   "org.rg" %% "scala-util3" % "1.0.0"
 )
 
