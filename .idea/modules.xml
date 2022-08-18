@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/scala-blockchain.iml" filepath="$PROJECT_DIR$/.idea/modules/scala-blockchain.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/scala-blockchain-build.iml" filepath="$PROJECT_DIR$/.idea/modules/scala-blockchain-build.iml" />
     </modules>
   </component>
 </project>

@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="sbt: org.rg:scala-util3_3:1.0.0:jar">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.ivy2/local/org.rg/scala-util3_3/1.0.0/jars/scala-util3_3.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$USER_HOME$/.ivy2/local/org.rg/scala-util3_3/1.0.0/docs/scala-util3_3-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.ivy2/local/org.rg/scala-util3_3/1.0.0/srcs/scala-util3_3-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
