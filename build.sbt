@@ -10,6 +10,7 @@ ThisBuild / libraryDependencies ++= Seq(
   "com.lihaoyi" %% "upickle" % "2.0.0",
   "com.lihaoyi" %% "requests" % "0.7.0",
   "com.typesafe.akka" %% "akka-actor-typed" % AkkaVersion,
+  "com.typesafe.akka" %% "akka-persistence-typed" % AkkaVersion,
   "org.rg" %% "scala-util3" % "1.0.0"
 )
 

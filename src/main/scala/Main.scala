@@ -147,3 +147,5 @@ object Main:
       ()
 
     system.ask(ref => JsonChain(ref)).map(b => println(s"*** *** $b"))
+
+    system ! GracefulShutdown

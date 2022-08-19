@@ -10,14 +10,23 @@ case class JsonChain(replyTo: ActorRef[String]) extends Order
 case class FullChain(replyTo: ActorRef[BlockChain]) extends Order
 case class Resolve(other: BlockChain) extends Order
 
+case object GracefulShutdown extends Order
+
 object BlockChainActor :
 
   def init : Behavior[Order] = Behaviors.setup[Order] {
-    context => apply(BlockChain())
+        context =>
+          context.setLoggerName("org.rg.sbc")
+          context.log.info("Starting up BlockChainActor")
+          apply(BlockChain())
   }
 
   def apply(root: BlockChain):  Behavior[Order] = Behaviors.receive {
     (context, message) => message match
+
+      case GracefulShutdown =>
+        context.log.info(s"receive shutdown order")
+        Behaviors.stopped { () => () } // ici sauvegarde de la chaine ???
 
       case t: Transaction =>
         context.log.info(s"receive order : adding a tranaction : $t")
