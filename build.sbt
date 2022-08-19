@@ -9,6 +9,7 @@ val AkkaVersion = "2.6.19"
 ThisBuild / libraryDependencies ++= Seq(
   "com.lihaoyi" %% "upickle" % "2.0.0",
   "com.lihaoyi" %% "requests" % "0.7.0",
+  "com.typesafe" % "config" % "1.4.2",
   "com.typesafe.akka" %% "akka-actor-typed" % AkkaVersion,
   //"com.typesafe.akka" %% "akka-persistence-typed" % AkkaVersion,
   "ch.qos.logback" % "logback-classic" % "1.2.11",

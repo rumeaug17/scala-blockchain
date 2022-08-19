@@ -1,9 +1,14 @@
 package org.rg.sbc
 
-import scala.collection.Seq
+import java.nio.file.{Paths, Files}
+import java.nio.charset.StandardCharsets
 
-import akka.actor.typed.{ActorSystem, ActorRef, Behavior, Scheduler}
+import scala.util.{Try,Success,Failure}
+import scala.collection.Seq
+import akka.actor.typed.{ActorRef, ActorSystem, Behavior, Scheduler}
 import akka.actor.typed.scaladsl.Behaviors
+
+import scala.io.Source
 
 case class Mining(who : String) extends Order
 case class JsonChain(replyTo: ActorRef[String]) extends Order
@@ -18,7 +23,19 @@ object BlockChainActor :
         context =>
           context.setLoggerName("org.rg.sbc")
           context.log.info("Starting up BlockChainActor")
-          apply(BlockChain())
+          // TODO : load backuped blockchain
+          val cfgPath = Settings.pathForBackupFile
+          context.log.info(s"config file path for loading backuped blockchain : $cfgPath")
+          val root = Try(Files.readString(Paths.get(cfgPath))) match
+            case Success(source: String) =>
+              context.log.info(s"found blockchain saved. Reload it : $source")
+              BlockChain(source)
+            case Failure(exception) =>
+              context.log.info(s"exception is $exception")
+              context.log.info(s"no blockchain saved founded. New one.")
+              BlockChain()
+
+          apply(root)
   }
 
   def apply(root: BlockChain):  Behavior[Order] = Behaviors.receive {
@@ -26,7 +43,14 @@ object BlockChainActor :
 
       case GracefulShutdown =>
         context.log.info(s"receive shutdown order")
-        Behaviors.stopped { () => () } // ici sauvegarde de la chaine ???
+        val cfgPath = Settings.pathForBackupFile
+        if cfgPath != "" then
+          context.log.info(s"config file path for  backuping blockchain : $cfgPath")
+          Files.write(Paths.get(cfgPath), root.toJsonString.getBytes(StandardCharsets.UTF_8))
+        else
+          context.log.info(s"no backup file, no saving : $cfgPath")
+
+        Behaviors.stopped { () => () }
 
       case t: Transaction =>
         context.log.info(s"receive order : adding a tranaction : $t")

@@ -39,7 +39,7 @@ object Main:
     system ! Mining("me")
 
     // for ask pattern
-    given timeout: Timeout = Timeout(600.seconds)
+    given timeout: Timeout = Timeout(60.seconds)
     given scheduler: Scheduler = system.scheduler
     given ec: ExecutionContext = system.executionContext
 
@@ -144,7 +144,7 @@ object Main:
     if BlockChain.validateChain(nbc) then
       system ! Resolve(nbc)
     else
-      ()
+      println ("No valid bc !")
 
     system.ask(ref => JsonChain(ref)).map(b => println(s"*** *** $b"))
 
