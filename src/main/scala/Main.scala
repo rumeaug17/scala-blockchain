@@ -1,12 +1,14 @@
 package org.rg.sbc
 
 import scala.collection.Seq
-
-import akka.actor.typed.{ActorSystem, ActorRef, Behavior, Scheduler}
+import akka.actor.typed.{ActorRef, ActorSystem, Behavior, Scheduler}
 import akka.actor.typed.scaladsl.Behaviors
+
+import scala.concurrent.Await
 
 // for ask pattern and await
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
+import scala.concurrent.Await
 import concurrent.duration.DurationInt
 import akka.util.Timeout
 import akka.actor.typed.scaladsl.AskPattern.*
@@ -21,6 +23,23 @@ object Main:
       .miningBlock("me")
     val someChain = longest.toJsonString
     println(someChain)
+
+  @main def anotherAkkaTest(): Unit =
+    val system: ActorSystem[Order] =
+      ActorSystem(BlockChainActor.init, "BlockChainActor")
+
+    // for ask pattern
+    given timeout: Timeout = Timeout(60.seconds)
+    given scheduler: Scheduler = system.scheduler
+    given ec: ExecutionContext = system.executionContext
+
+    val current: Future[BlockChain] = system.ask(ref => FullChain(ref))
+    val chain: BlockChain = Await.result(current, 60.seconds)
+
+    val resultedChain = chain.addTransaction(Transaction("me", "nobody", 1400)).miningBlock("me")
+
+    system !  Resolve(resultedChain)
+    system ! GracefulShutdown
 
   @main def TestWithAkka(): Unit =
     val system: ActorSystem[Order] =

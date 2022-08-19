@@ -6,8 +6,7 @@ import java.nio.charset.StandardCharsets
 import scala.util.{Try,Success,Failure}
 import scala.collection.Seq
 import akka.actor.typed.{ActorRef, ActorSystem, Behavior, Scheduler}
-import akka.actor.typed.scaladsl.Behaviors
-
+import akka.actor.typed.scaladsl.{Behaviors, ActorContext}
 import scala.io.Source
 
 case class Mining(who : String) extends Order
@@ -23,7 +22,6 @@ object BlockChainActor :
         context =>
           context.setLoggerName("org.rg.sbc")
           context.log.info("Starting up BlockChainActor")
-          // TODO : load backuped blockchain
           val cfgPath = Settings.pathForBackupFile
           context.log.info(s"config file path for loading backuped blockchain : $cfgPath")
           val root = Try(Files.readString(Paths.get(cfgPath))) match
@@ -39,32 +37,40 @@ object BlockChainActor :
           apply(root)
   }
 
+  private def backup(root: BlockChain, context: ActorContext[Order]): Unit =
+    val cfgPath = Settings.pathForBackupFile
+    if cfgPath != "" then
+      context.log.info(s"config file path for  backuping blockchain : $cfgPath")
+      Files.write(Paths.get(cfgPath), root.toJsonString.getBytes(StandardCharsets.UTF_8))
+    else
+      context.log.info(s"no backup file, no saving : $cfgPath")
+
   def apply(root: BlockChain):  Behavior[Order] = Behaviors.receive {
     (context, message) => message match
 
       case GracefulShutdown =>
         context.log.info(s"receive shutdown order")
-        val cfgPath = Settings.pathForBackupFile
-        if cfgPath != "" then
-          context.log.info(s"config file path for  backuping blockchain : $cfgPath")
-          Files.write(Paths.get(cfgPath), root.toJsonString.getBytes(StandardCharsets.UTF_8))
-        else
-          context.log.info(s"no backup file, no saving : $cfgPath")
-
+        backup(root, context)
         Behaviors.stopped { () => () }
 
       case t: Transaction =>
         context.log.info(s"receive order : adding a tranaction : $t")
-        BlockChainActor(root.addTransaction(t))
+        val nbc = root.addTransaction(t)
+        backup(nbc, context)
+        BlockChainActor(nbc)
 
       case Mining(who) =>
         context.log.info(s"receive order : mining block from $who")
-        BlockChainActor(root.miningBlock(who))
+        val nbc = root.miningBlock(who)
+        backup(nbc, context)
+        BlockChainActor(nbc)
 
       case Resolve(other) =>
         context.log.info(s"receive order : resolve")
         if BlockChain.validateChain(other) then
-          BlockChainActor(BlockChain.resolveConflicts(root)(Seq(other)))
+          val nbc = BlockChain.resolveConflicts(root)(Seq(other))
+          backup(nbc, context)
+          BlockChainActor(nbc)
         else
           Behaviors.same
 
