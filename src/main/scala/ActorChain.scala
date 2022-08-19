@@ -28,7 +28,8 @@ object BlockChainActor :
           context.log.info(s"config file path for loading backuped blockchain : $cfgPath")
           val root = Try(Files.readString(Paths.get(cfgPath))) match
             case Success(source: String) =>
-              context.log.info(s"found blockchain saved. Reload it : $source")
+              context.log.info("found blockchain saved. Reload it.")
+              context.log.debug(source)
               BlockChain(source)
             case Failure(exception) =>
               context.log.info(s"exception is $exception")
