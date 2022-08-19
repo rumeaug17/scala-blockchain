@@ -5,6 +5,7 @@ import akka.actor.typed.{ActorRef, ActorSystem, Behavior, Scheduler}
 import akka.actor.typed.scaladsl.Behaviors
 
 import scala.concurrent.Await
+import scala.concurrent.duration.FiniteDuration
 
 // for ask pattern and await
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
@@ -22,12 +23,13 @@ import upickle._
 
 object HttpServer extends cask.MainRoutes:
   override def port: Int = 8888
+  val defaultDuration: FiniteDuration = 60.seconds
 
   private val system: ActorSystem[Order] =
     ActorSystem(BlockChainActor.init, "BlockChainActor")
 
   // for ask pattern
-  given timeout: Timeout = Timeout(60.seconds)
+  given timeout: Timeout = Timeout(defaultDuration)
   given scheduler: Scheduler = system.scheduler
   given ec: ExecutionContext = system.executionContext
 
@@ -39,7 +41,7 @@ object HttpServer extends cask.MainRoutes:
   @cask.get("/full")
   def sendFullJsonChain() =
     val current: Future[String] = system.ask(ref => JsonChain(ref))
-    Await.result(current, 60.seconds)
+    Await.result(current, defaultDuration)
 
   initialize()
 
@@ -47,6 +49,16 @@ object HttpServer extends cask.MainRoutes:
   def getBalanceForUser(user : String) =
     val current: Future[BlockChain] = system.ask(ref => FullChain(ref))
     val balance = current.map(c => c.globalBalanceFor(user))(using ec)
-    write(Map(user -> Await.result(balance, 60.seconds)))
+    write(Map(user -> Await.result(balance, defaultDuration)))
+
+  @cask.postJson("/transaction")
+  def addTransaction(transaction : Transaction) =
+    system ! transaction
+    write(transaction)
+
+  @cask.postJson("/mining")
+  def mininig(user : String) =
+    system ! Mining(user)
+    write(Map("action" -> "mining", "who" -> user))
 
 end HttpServer
