@@ -26,6 +26,12 @@ case class BlockChain(chain: Seq[Block], transactions: Seq[Transaction]):
   val ChainedTransactions: Seq[Transaction] =
     chain.flatMap(block => block.data)
 
+  val knownUsers: Seq[String] =
+   ChainedTransactions.flatMap(t => Set(t.sender, t.receiver)).distinct
+
+  val knownUsersWithBalance: Map[String, Long] =
+    knownUsers.map(user => (user, globalBalanceFor(user))).toMap
+
   def globalBalanceFor(him : String): Long =
     ChainedTransactions.collect{case t if t.receiver == him => t.amount}.sum -
       ChainedTransactions.collect{case t if t.sender == him => t.amount}.sum

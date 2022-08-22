@@ -34,6 +34,11 @@ case class ServerInfo(
                      )
 given RW[ServerInfo] = macroRW
 
+case class UserList(
+                   users: Seq[String]
+                   )
+given RW[UserList] = macroRW
+
 object HttpServer extends cask.MainRoutes:
   override def port: Int = 8888
   val defaultDuration: FiniteDuration = 60.seconds
@@ -69,6 +74,8 @@ object HttpServer extends cask.MainRoutes:
       "simple http (rest api) server for sbc",
       Map(
         "/full" -> "get full json blockchain state",
+        "/users" -> "list of users with current balance",
+        "/transactions" -> "list of validated transactions",
         "/balance/:user" -> "get balance amount for :user",
         "/transaction" -> "post a new transaction",
         "/mininig" -> "post a mining attempt"
@@ -87,7 +94,20 @@ object HttpServer extends cask.MainRoutes:
   def getBalanceForUser(user : String): String =
     val current: Future[BlockChain] = system.ask(ref => FullChain(ref))
     val balance = current.map(c => c.globalBalanceFor(user))(using ec)
-    write(Map(user -> Await.result(balance, defaultDuration)))
+    write(Map(user -> Await.result(balance, defaultDuration)), indent = 2)
+
+  @cask.get("/users")
+  def getListIOfUsers() : String =
+    val current: Future[BlockChain] = system.ask(ref => FullChain(ref))
+    val users = current.map(_.knownUsersWithBalance)(using ec)
+    write(Await.result(users, defaultDuration), indent = 2)
+
+  @cask.get("/transactions")
+  def getListIOfTransactions(): String =
+    val current: Future[BlockChain] = system.ask(ref => FullChain(ref))
+    val transactions = current.map(_.ChainedTransactions)(using ec)
+    write(Await.result(transactions, defaultDuration), indent = 2)
+
 
   // curl http://localhost:8888/transaction -d "{\"transaction\": {\"sender\": \"1\", \"receiver\": \"2\", \"amount\": 1}}"
   @cask.postJson("/transaction")
