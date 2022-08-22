@@ -1,12 +1,16 @@
 package org.rg.sbc
 
+import java.time.LocalDateTime
+
 import scala.collection.Seq
+import scala.concurrent.Await
+import scala.concurrent.duration.FiniteDuration
+
 import akka.actor.typed.{ActorRef, ActorSystem, Behavior, Scheduler}
 import akka.actor.typed.scaladsl.Behaviors
 
-import java.time.LocalDateTime
-import scala.concurrent.Await
-import scala.concurrent.duration.FiniteDuration
+import cask.util.Logger
+import org.slf4j.LoggerFactory
 
 // for ask pattern and await
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
@@ -37,14 +41,27 @@ object HttpServer extends cask.MainRoutes:
   private val system: ActorSystem[Order] =
     ActorSystem(BlockChainActor.init, "BlockChainActor")
 
+
+  override def debugMode: Boolean = Settings.debugMode
+
+  // Surcharge du logger par défaut de cask par le logger slf4j configuré
+  override def log: Logger = new Logger:
+    private val logger = LoggerFactory.getLogger(getClass)
+
+    def exception(t: Throwable): Unit =
+      logger.error(t.toString)
+
+    def debug(t: sourcecode.Text[Any])(implicit f: sourcecode.File, line: sourcecode.Line): Unit =
+      logger.debug(f.value.split('/').last + ":" + line + " " + t.source + " " + pprint.apply(t.value))
+
+
   // for ask pattern
   given timeout: Timeout = Timeout(defaultDuration)
   given scheduler: Scheduler = system.scheduler
   given ec: ExecutionContext = system.executionContext
 
   @cask.get("/")
-  def hello() =
-    //log.debug("init http server")
+  def hello(): String =
     // log with same system as akka ?
     val infos = ServerInfo(
       "http://localhost:8888/",
@@ -61,31 +78,31 @@ object HttpServer extends cask.MainRoutes:
 
   //curl http://localhost:8888/full
   @cask.get("/full")
-  def sendFullJsonChain() =
+  def sendFullJsonChain(): String =
     val current: Future[String] = system.ask(ref => JsonChain(ref))
     Await.result(current, defaultDuration)
 
-  initialize()
-
-
   //curl http://localhost:8888/balance/1
   @cask.get("/balance/:user")
-  def getBalanceForUser(user : String) =
+  def getBalanceForUser(user : String): String =
     val current: Future[BlockChain] = system.ask(ref => FullChain(ref))
     val balance = current.map(c => c.globalBalanceFor(user))(using ec)
     write(Map(user -> Await.result(balance, defaultDuration)))
 
   // curl http://localhost:8888/transaction -d "{\"transaction\": {\"sender\": \"1\", \"receiver\": \"2\", \"amount\": 1}}"
   @cask.postJson("/transaction")
-  def addTransaction(transaction : Transaction) =
+  def addTransaction(transaction : Transaction): String =
     system ! transaction
     write(transaction)
 
 
   // curl http://localhost:8888/mining -d "{\"user\": \"1\"}"
   @cask.postJson("/mining")
-  def mining(user : String) =
+  def mining(user : String): String =
     system ! Mining(user)
     write(Map("action" -> "mining", "who" -> user))
+
+  log.debug("Http server for serving API sbt initialized")
+  initialize()
 
 end HttpServer
