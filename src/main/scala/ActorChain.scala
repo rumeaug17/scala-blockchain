@@ -54,7 +54,7 @@ object BlockChainActor :
         Behaviors.stopped { () => () }
 
       case t: Transaction =>
-        context.log.info(s"receive order : adding a tranaction : $t")
+        context.log.info(s"receive order : adding a transaction : $t")
         val nbc = root.addTransaction(t)
         backup(nbc, context)
         BlockChainActor(nbc)

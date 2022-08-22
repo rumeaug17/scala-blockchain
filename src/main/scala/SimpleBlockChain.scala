@@ -62,7 +62,7 @@ case class BlockChain(chain: Seq[Block], transactions: Seq[Transaction]):
   def validateProof(lastProof: String, proof: String): Boolean =
     val guess = s"$lastProof$proof"
     val guessHash = sha256Hash(guess)
-    guessHash.endsWith("0000")
+    guessHash.endsWith("00000")
 
   def validateBlock(block: Block, previous: Block): Boolean =
     block.dataHash == hash(block.data) && block.predecessorHash == hash(previous) && validateProof(previous.proof, block.proof)
@@ -89,7 +89,7 @@ given RW[BlockChain] = macroRW
 
 object BlockChain:
   // create the genesis block
-  def apply(): BlockChain = BlockChain(Seq(), Seq()).addBlock("10000", Some("1"))
+  def apply(): BlockChain = BlockChain(Seq(), Seq()).addBlock("100000", Some("1"))
 
   // create from Json
   def apply(jsonString: String): BlockChain =
