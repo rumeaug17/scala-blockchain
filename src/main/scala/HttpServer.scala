@@ -22,8 +22,6 @@ import upickle._
 // an api server on front of the actor system
 // https://com-lihaoyi.github.io/cask/index.html
 
-// il faudrait remplacer par un autre framework pour les api, qui gère mieux les Future de scala
-
 case class ServerInfo(
                      url: String,
                      dateTime: String,
