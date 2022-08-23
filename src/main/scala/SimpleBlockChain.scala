@@ -8,7 +8,7 @@ import upickle.default.{ReadWriter => RW, macroRW}
 import upickle._
 
 trait Order
-case class Transaction(sender: String, receiver: String, amount: Long) extends Order
+case class Transaction(sender: String, receiver: String, amount: Long, description: String = "") extends Order
 given RW[Transaction] = macroRW
 
 case class Block(
@@ -20,6 +20,9 @@ case class Block(
                   proof: String
                 )
 given RW[Block] = macroRW
+
+// environ une minute pour miner un bloc sur ma machine
+private inline val final_guess = "000000"
 
 case class BlockChain(chain: Seq[Block], transactions: Seq[Transaction]):
 
@@ -68,7 +71,7 @@ case class BlockChain(chain: Seq[Block], transactions: Seq[Transaction]):
   def validateProof(lastProof: String, proof: String): Boolean =
     val guess = s"$lastProof$proof"
     val guessHash = sha256Hash(guess)
-    guessHash.endsWith("00000")
+    guessHash.endsWith(final_guess)
 
   def validateBlock(block: Block, previous: Block): Boolean =
     block.dataHash == hash(block.data) && block.predecessorHash == hash(previous) && validateProof(previous.proof, block.proof)
@@ -83,7 +86,7 @@ case class BlockChain(chain: Seq[Block], transactions: Seq[Transaction]):
       // run the proof of work to get the next proof of the chain
       val proof = proofOfWork(lastProof)
       // add a transaction for paying
-      val bc = addTransaction(Transaction("0", receiver, 1))
+      val bc = addTransaction(Transaction("0", receiver, 1, s"mining from $receiver"))
       // forge the new block by adding it to the chain
       bc.addBlock(proof)
 
@@ -95,7 +98,7 @@ given RW[BlockChain] = macroRW
 
 object BlockChain:
   // create the genesis block
-  def apply(): BlockChain = BlockChain(Seq(), Seq()).addBlock("100000", Some("1"))
+  def apply(): BlockChain = BlockChain(Seq(), Seq()).addBlock(s"1$final_guess", Some("1"))
 
   // create from Json
   def apply(jsonString: String): BlockChain =

@@ -97,19 +97,19 @@ object HttpServer extends cask.MainRoutes:
     write(Map(user -> Await.result(balance, defaultDuration)), indent = 2)
 
   @cask.get("/users")
-  def getListIOfUsers() : String =
+  def listIOfUsers() : String =
     val current: Future[BlockChain] = system.ask(ref => FullChain(ref))
     val users = current.map(_.knownUsersWithBalance)(using ec)
     write(Await.result(users, defaultDuration), indent = 2)
 
   @cask.get("/transactions")
-  def getListIOfTransactions(): String =
+  def listIOfTransactions(): String =
     val current: Future[BlockChain] = system.ask(ref => FullChain(ref))
     val transactions = current.map(_.ChainedTransactions)(using ec)
     write(Await.result(transactions, defaultDuration), indent = 2)
 
 
-  // curl http://localhost:8888/transaction -d "{\"transaction\": {\"sender\": \"1\", \"receiver\": \"2\", \"amount\": 1}}"
+  // curl http://localhost:8888/transaction -d "{\"transaction\": {\"sender\": \"1\", \"receiver\": \"2\", \"amount\": 1, \"description\": \"payment\"}}"
   @cask.postJson("/transaction")
   def addTransaction(transaction : Transaction): String =
     system ! transaction
