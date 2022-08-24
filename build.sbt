@@ -13,7 +13,7 @@ ThisBuild / libraryDependencies ++= Seq(
   "com.typesafe" % "config" % "1.4.2",
   "com.typesafe.akka" %% "akka-actor-typed" % AkkaVersion,
   "ch.qos.logback" % "logback-classic" % "1.2.11",
-  "org.rg" %% "scala-util3" % "1.0.0"
+  "org.rg" %% "scala-util3" % "1.1.0"
 )
 
 ThisBuild / scalacOptions ++= Seq(

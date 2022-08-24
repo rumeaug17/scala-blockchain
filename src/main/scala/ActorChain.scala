@@ -1,5 +1,7 @@
 package org.rg.sbc
 
+import org.rg.su3.IO
+
 import java.nio.file.{Paths, Files}
 import java.nio.charset.StandardCharsets
 
@@ -7,7 +9,6 @@ import scala.util.{Try,Success,Failure}
 import scala.collection.Seq
 import akka.actor.typed.{ActorRef, ActorSystem, Behavior, Scheduler}
 import akka.actor.typed.scaladsl.{Behaviors, ActorContext}
-import scala.io.Source
 
 case class Mining(who : String) extends Order
 case class JsonChain(replyTo: ActorRef[String]) extends Order
@@ -41,7 +42,7 @@ object BlockChainActor :
     val cfgPath = Settings.pathForBackupFile
     if cfgPath != "" then
       context.log.info(s"config file path for  backuping blockchain : $cfgPath")
-      Files.write(Paths.get(cfgPath), root.toJsonString.getBytes(StandardCharsets.UTF_8))
+      IO.writeFile(StandardCharsets.UTF_8)(cfgPath)(root.toJsonString)
     else
       context.log.info(s"no backup file, no saving : $cfgPath")
 
