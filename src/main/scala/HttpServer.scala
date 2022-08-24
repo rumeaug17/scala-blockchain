@@ -1,16 +1,15 @@
 package org.rg.sbc
 
 import java.time.LocalDateTime
-
 import scala.collection.Seq
 import scala.concurrent.Await
 import scala.concurrent.duration.FiniteDuration
-
 import akka.actor.typed.{ActorRef, ActorSystem, Behavior, Scheduler}
 import akka.actor.typed.scaladsl.Behaviors
-
 import cask.util.Logger
 import org.slf4j.LoggerFactory
+
+import scala.collection.immutable.VectorMap
 
 // for ask pattern and await
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
@@ -72,7 +71,7 @@ object HttpServer extends cask.MainRoutes:
       "http://localhost:8888/",
       LocalDateTime.now().toString,
       "simple http (rest api) server for sbc",
-      Map(
+      VectorMap(
         "/full" -> "get full json blockchain state",
         "/users" -> "list of users with current balance",
         "/transactions" -> "list of validated transactions",
